@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session compare</title>
+<style>
+:root {
+  --surface-1: #fcfcfb;
+  --page: #f9f9f7;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300;
+  --s5: #4a3aa7; --s6: #e34948; --s7: #e87ba4; --s8: #eb6834;
+  --warn: #d03b3b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #008300;
+    --s5: #9085e9; --s6: #e66767; --s7: #d55181; --s8: #d95926;
+  }
+}
+:root[data-theme="light"] {
+  --surface-1: #fcfcfb; --page: #f9f9f7; --ink: #0b0b0b; --ink-2: #52514e;
+  --muted: #898781; --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300;
+  --s5: #4a3aa7; --s6: #e34948; --s7: #e87ba4; --s8: #eb6834; --warn: #d03b3b;
+}
+:root[data-theme="dark"] {
+  --surface-1: #1a1a19; --page: #0d0d0d; --ink: #ffffff; --ink-2: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
+  --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #008300;
+  --s5: #9085e9; --s6: #e66767; --s7: #d55181; --s8: #d95926; --warn: #d03b3b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--page); color: var(--ink);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 64px; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 32px 0 12px; }
+h3 { font-size: 14px; margin: 20px 0 8px; color: var(--ink-2); }
+.sub { color: var(--muted); font-size: 12px; margin-bottom: 20px; }
+.card {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; margin-bottom: 16px;
+}
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; }
+th:first-child, td:first-child, th.txt { text-align: left; }
+td.txt { text-align: left; white-space: normal; max-width: 420px; color: var(--ink-2); }
+tr:last-child td { border-bottom: none; }
+.num { font-variant-numeric: tabular-nums; }
+.key { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-2); margin: 4px 0 8px; }
+.legend .it { display: flex; align-items: center; }
+.chart-box { position: relative; }
+.chart-box svg { display: block; width: 100%; height: auto; }
+.tip {
+  position: absolute; pointer-events: none; display: none; z-index: 5;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  min-width: 140px;
+}
+.tip .t { color: var(--muted); margin-bottom: 4px; }
+.tip .row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+.tip .row b { font-variant-numeric: tabular-nums; }
+.tip .row span { color: var(--ink-2); }
+.tip .ev { color: var(--ink-2); margin-top: 4px; border-top: 1px solid var(--grid); padding-top: 4px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
+.tile .l { font-size: 12px; color: var(--muted); }
+.tile .v { font-size: 22px; font-weight: 600; margin-top: 2px; }
+.tile .d { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+.pill { display: inline-block; font-size: 11px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; color: var(--ink-2); margin-right: 6px; }
+button.more {
+  background: none; border: 1px solid var(--border); color: var(--ink-2);
+  border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; margin-top: 8px;
+}
+button.more:hover { border-color: var(--baseline); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.warntxt { color: var(--warn); }
+.scroll { overflow-x: auto; }
+details.pricing { font-size: 12px; color: var(--muted); margin-top: 24px; }
+details.pricing table { font-size: 12px; max-width: 560px; }
+.theme-toggle {
+  float: right; background: none; border: 1px solid var(--border); color: var(--ink-2);
+  border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer;
+}
+.marker-legend { font-size: 11px; color: var(--muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+<script id="report-data" type="application/json">{}</script>
+<div class="wrap" id="app"></div>
+<script>
+'use strict';
+const DATA = JSON.parse(document.getElementById('report-data').textContent);
+const S = DATA.sessions;
+const COLORS = ['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'];
+const colorOf = i => `var(${COLORS[i % COLORS.length]})`;
+
+// ---- formatting ----------------------------------------------------------
+const fmtTok = n => {
+  if (n == null) return '—';
+  if (Math.abs(n) >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1) + 'k';
+  return String(n);
+};
+const fmtUsd = n => n == null ? '—' : '$' + (n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2));
+const fmtDur = ms => {
+  if (!ms) return '—';
+  const m = Math.round(ms/60000);
+  if (m < 1) return Math.round(ms/1000) + 's';
+  if (m < 60) return m + 'm';
+  return Math.floor(m/60) + 'h ' + String(m%60).padStart(2,'0') + 'm';
+};
+const fmtClock = ts => new Date(ts).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+const fmtDate = ts => new Date(ts).toLocaleString('en-GB', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+const el = (tag, attrs, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs || {})) {
+    if (k === 'class') n.className = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null) continue;
+    n.append(kid.nodeType ? kid : document.createTextNode(kid));
+  }
+  return n;
+};
+const usageIn = u => u.inputUncached + u.cacheWrite5m + u.cacheWrite1h + u.cacheRead;
+const usageTotal = u => usageIn(u) + u.output;
+
+// ---- SVG line chart with crosshair tooltip -------------------------------
+// series: [{name, color, points:[{x (minutes), y, ts?}], events:[{x, kind, label}]}]
+// opts: {yFmt, height, yLabel}
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  const n = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs || {})) n.setAttribute(k, v);
+  return n;
+}
+const EVENT_GLYPHS = { compact: '▼', spawn: '○', model: '◆' };
+function lineChart(series, opts) {
+  const W = 1060, H = opts.height || 260;
+  const M = { l: 58, r: 16, t: 12, b: 26 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const allPts = series.flatMap(s => s.points);
+  if (!allPts.length) return el('div', {class:'note'}, 'no data');
+  const xMax = Math.max(...allPts.map(p => p.x), 1);
+  const yMax = Math.max(...allPts.map(p => p.y), 1) * 1.06;
+  const X = x => M.l + (x / xMax) * iw;
+  const Y = y => M.t + ih - (y / yMax) * ih;
+
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img' });
+  // gridlines: 4 clean horizontal steps
+  const step = niceStep(yMax / 4);
+  for (let v = step; v <= yMax; v += step) {
+    svg.append(svgEl('line', { x1: M.l, x2: W - M.r, y1: Y(v), y2: Y(v), stroke: 'var(--grid)', 'stroke-width': 1 }));
+    const t = svgEl('text', { x: M.l - 8, y: Y(v) + 4, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 11 });
+    t.textContent = opts.yFmt(v);
+    svg.append(t);
+  }
+  // baseline + x ticks
+  svg.append(svgEl('line', { x1: M.l, x2: W - M.r, y1: Y(0), y2: Y(0), stroke: 'var(--baseline)', 'stroke-width': 1 }));
+  const xStep = niceStep(xMax / 6);
+  for (let v = 0; v <= xMax; v += xStep) {
+    const t = svgEl('text', { x: X(v), y: H - 8, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 11 });
+    t.textContent = fmtMin(v);
+    svg.append(t);
+  }
+  // series lines
+  series.forEach((s, i) => {
+    if (!s.points.length) return;
+    const d = s.points.map((p, j) => (j ? 'L' : 'M') + X(p.x).toFixed(1) + ' ' + Y(p.y).toFixed(1)).join(' ');
+    svg.append(svgEl('path', { d, fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    // end marker with surface ring
+    const last = s.points[s.points.length - 1];
+    svg.append(svgEl('circle', { cx: X(last.x), cy: Y(last.y), r: 4, fill: s.color, stroke: 'var(--surface-1)', 'stroke-width': 2 }));
+  });
+  // event markers on their series' curve
+  series.forEach(s => {
+    for (const ev of s.events || []) {
+      const y = interpY(s.points, ev.x);
+      if (y == null) continue;
+      const g = svgEl('text', {
+        x: X(ev.x), y: Y(y) - 8, 'text-anchor': 'middle', 'font-size': 10,
+        fill: ev.kind === 'compact' ? 'var(--warn)' : s.color,
+      });
+      g.textContent = EVENT_GLYPHS[ev.kind] || '●';
+      const title = svgEl('title', {});
+      title.textContent = ev.label;
+      g.append(title);
+      svg.append(g);
+    }
+  });
+  // crosshair
+  const cross = svgEl('line', { y1: M.t, y2: M.t + ih, stroke: 'var(--baseline)', 'stroke-width': 1, visibility: 'hidden' });
+  svg.append(cross);
+
+  const box = el('div', { class: 'chart-box' });
+  const tip = el('div', { class: 'tip' });
+  box.append(svg, tip);
+
+  svg.addEventListener('pointermove', e => {
+    const rect = svg.getBoundingClientRect();
+    const px = ((e.clientX - rect.left) / rect.width) * W;
+    if (px < M.l || px > W - M.r) { hide(); return; }
+    const xVal = ((px - M.l) / iw) * xMax;
+    cross.setAttribute('x1', px); cross.setAttribute('x2', px);
+    cross.setAttribute('visibility', 'visible');
+    tip.replaceChildren();
+    tip.append(el('div', { class: 't' }, opts.xTipFmt ? opts.xTipFmt(xVal) : fmtMin(xVal)));
+    let shown = 0;
+    series.forEach(s => {
+      const p = nearest(s.points, xVal);
+      if (!p) return;
+      shown++;
+      tip.append(el('div', { class: 'row' },
+        el('i', { class: 'key', style: `background:${s.color}` }),
+        el('b', {}, opts.yFmt(p.y)),
+        el('span', {}, s.name)));
+    });
+    const evs = series.flatMap(s => (s.events || []).filter(ev => Math.abs(ev.x - xVal) < xMax / 60).map(ev => ev.label));
+    if (evs.length) tip.append(el('div', { class: 'ev' }, evs.slice(0, 3).join(' · ')));
+    if (!shown) { hide(); return; }
+    tip.style.display = 'block';
+    const bw = box.clientWidth;
+    const tx = (px / W) * bw;
+    tip.style.left = Math.min(tx + 12, bw - tip.offsetWidth - 4) + 'px';
+    tip.style.top = '10px';
+  });
+  svg.addEventListener('pointerleave', hide);
+  function hide() { cross.setAttribute('visibility', 'hidden'); tip.style.display = 'none'; }
+  return box;
+}
+function nearest(pts, x) {
+  if (!pts.length) return null;
+  let best = pts[0];
+  for (const p of pts) if (Math.abs(p.x - x) < Math.abs(best.x - x)) best = p;
+  return best;
+}
+function interpY(pts, x) {
+  const p = nearest(pts, x);
+  return p ? p.y : null;
+}
+function niceStep(raw) {
+  const mag = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+  const n = raw / mag;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag;
+}
+const fmtMin = m => m >= 60 ? Math.floor(m/60) + 'h' + (Math.round(m%60) ? String(Math.round(m%60)).padStart(2,'0') : '') : Math.round(m) + 'm';
+
+// series builders: x = minutes elapsed from session start
+const ctxSeries = (s, i) => ({
+  name: s.title || s.session_id.slice(0, 8),
+  color: colorOf(i),
+  points: s.series.map(p => ({ x: (p.t - s.start_ts) / 60000, y: p.ctx })),
+  events: s.events.map(ev => ({
+    x: (ev.t - s.start_ts) / 60000,
+    kind: ev.type,
+    label: ev.type === 'compact'
+      ? `compact (${ev.trigger}): ${fmtTok(ev.pre)} → ${fmtTok(ev.post)}`
+      : ev.type === 'spawn'
+        ? `subagent: ${ev.agent}${ev.desc ? ' — ' + ev.desc : ''}`
+        : `model: ${ev.from} → ${ev.to}`,
+  })),
+});
+const costSeries = (s, i) => ({
+  name: s.title || s.session_id.slice(0, 8),
+  color: colorOf(i),
+  points: s.series.map(p => ({ x: (p.t - s.start_ts) / 60000, y: p.cost })),
+  events: [],
+});
+
+// ---- render ---------------------------------------------------------------
+const app = document.getElementById('app');
+document.title = 'Session compare — ' + S.map(s => s.title || s.session_id.slice(0,8)).join(' vs ');
+
+// header
+app.append(
+  el('button', { class: 'theme-toggle', onclick: () => {
+    const r = document.documentElement;
+    const cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    r.dataset.theme = cur === 'dark' ? 'light' : 'dark';
+  }}, 'theme'),
+  el('h1', {}, S.length > 1 ? 'Session comparison' : 'Session report'),
+  el('div', { class: 'sub' },
+    `${S.length} session${S.length > 1 ? 's' : ''} · generated ${DATA.generated_at.slice(0,16).replace('T',' ')} · cache write 5m ×1.25, 1h ×2, read ×0.1 of input price`),
+);
+
+// legend (only for >1 session)
+if (S.length > 1) {
+  app.append(el('div', { class: 'legend' },
+    S.map((s, i) => el('div', { class: 'it' },
+      el('i', { class: 'key', style: `background:${colorOf(i)}` }),
+      s.title || s.session_id.slice(0, 8)))));
+}
+
+// comparison table
+{
+  const rows = [
+    ['Cost (total, incl. subagents)', s => fmtUsd(s.totals.cost_usd), true],
+    [' main session', s => fmtUsd(s.main.cost_usd)],
+    [' subagents', s => `${fmtUsd(s.subagent_totals.cost_usd)} (${s.subagent_totals.pct_of_cost}%)`],
+    ['Tokens total', s => fmtTok(s.totals.tokens_total)],
+    [' input uncached', s => fmtTok(s.totals.tokens.inputUncached)],
+    [' cache write 5m', s => fmtTok(s.totals.tokens.cacheWrite5m)],
+    [' cache write 1h', s => fmtTok(s.totals.tokens.cacheWrite1h)],
+    [' cache read', s => fmtTok(s.totals.tokens.cacheRead)],
+    [' output', s => fmtTok(s.totals.tokens.output)],
+    ['Cache read share of input', s => s.totals.pct_cache_read + '%'],
+    ['API calls', s => s.totals.api_calls],
+    ['Tool calls', s => s.totals.tool_calls],
+    ['Human turns', s => s.totals.human_turns],
+    ['Subagents', s => s.subagent_totals.count],
+    ['Compactions', s => s.compacts.length],
+    ['Wall time', s => fmtDur(s.wall_ms)],
+    ['Active time (main)', s => fmtDur(s.active_ms)],
+    ['Model(s)', s => s.models.join(', ') || '—'],
+    ['Project', s => s.project.replace(/^-home-[^-]+-/, '')],
+    ['Started', s => s.start_ts ? fmtDate(s.start_ts) : '—'],
+  ];
+  const thead = el('tr', {}, el('th', {}, ''),
+    S.map((s, i) => el('th', {},
+      el('i', { class: 'key', style: `background:${colorOf(i)}` }),
+      s.title || s.session_id.slice(0, 8))));
+  const tbl = el('table', {}, el('thead', {}, thead), el('tbody', {},
+    rows.map(([label, fn, strong]) => el('tr', {},
+      el('td', strong ? { style: 'font-weight:600' } : {}, label),
+      S.map(s => el('td', { class: 'num', style: strong ? 'font-weight:600' : '' }, String(fn(s))))))));
+  app.append(el('div', { class: 'card scroll' }, tbl));
+  const unknown = S.filter(s => s.totals.unknown_model_tokens > 0);
+  if (unknown.length) {
+    app.append(el('div', { class: 'note warntxt' },
+      'warning: some tokens belong to models with unknown pricing and are excluded from $: ' +
+      unknown.map(s => `${s.title || s.session_id.slice(0,8)}: ${fmtTok(s.totals.unknown_model_tokens)}`).join('; ')));
+  }
+}
+
+// overlay charts
+app.append(el('h2', {}, 'Context size over elapsed time'),
+  el('div', { class: 'card' },
+    lineChart(S.map(ctxSeries), { yFmt: fmtTok, height: 280 }),
+    el('div', { class: 'marker-legend' }, '▼ compact ○ subagent spawn ◆ model change — hover for details; context = input + cache read + cache write per call (main session only)')));
+app.append(el('h2', {}, 'Cumulative cost (main session calls)'),
+  el('div', { class: 'card' },
+    lineChart(S.map(costSeries), { yFmt: fmtUsd, height: 240 }),
+    el('div', { class: 'marker-legend' }, 'subagent cost is attributed to turns in the per-session tables below, not to this curve')));
+
+// per-session detail
+S.forEach((s, i) => {
+  const name = s.title || s.session_id.slice(0, 8);
+  app.append(el('h2', {},
+    el('i', { class: 'key', style: `background:${colorOf(i)}` }),
+    name, ' ',
+    el('span', { class: 'pill mono' }, s.session_id.slice(0, 8))));
+
+  // tiles
+  app.append(el('div', { class: 'tiles' },
+    tile('Total cost', fmtUsd(s.totals.cost_usd), `${fmtUsd(s.main.cost_usd)} main + ${fmtUsd(s.subagent_totals.cost_usd)} sub`),
+    tile('Tokens', fmtTok(s.totals.tokens_total), `${s.totals.pct_cache_read}% cache-read`),
+    tile('Turns', String(s.totals.human_turns), `${s.totals.api_calls} API calls`),
+    tile('Subagents', String(s.subagent_totals.count), s.subagent_totals.count ? `${s.subagent_totals.pct_of_cost}% of cost` : ''),
+    tile('Compactions', String(s.compacts.length), s.compacts.length ? s.compacts.map(c => c.trigger).join(', ') : ''),
+    tile('Wall / active', fmtDur(s.wall_ms), `active ${fmtDur(s.active_ms)}`),
+  ));
+
+  // turns table (sorted by cost desc, top 10 + expand)
+  if (s.turns.length) {
+    const sorted = [...s.turns].sort((a, b) => b.cost_usd - a.cost_usd);
+    const makeRow = t => el('tr', {},
+      el('td', { class: 'num' }, '#' + t.idx),
+      el('td', {}, fmtClock(t.ts)),
+      el('td', { class: 'txt' }, t.text),
+      el('td', { class: 'num' }, t.api_calls),
+      el('td', { class: 'num' }, t.tool_calls),
+      el('td', { class: 'num' }, t.subagent_count || ''),
+      el('td', { class: 'num' }, fmtTok(t.context_end)),
+      el('td', { class: 'num' }, fmtTok(usageTotal(t.tokens))),
+      el('td', { class: 'num' }, fmtDur(t.duration_ms)),
+      el('td', { class: 'num', style: 'font-weight:600' }, fmtUsd(t.cost_usd)));
+    const tbody = el('tbody', {}, sorted.slice(0, 10).map(makeRow));
+    const tbl = el('table', {},
+      el('thead', {}, el('tr', {},
+        ['turn','time','prompt','calls','tools','sub','ctx end','tokens','dur','cost*'].map(h => el('th', { class: h === 'prompt' ? 'txt' : '' }, h)))),
+      tbody);
+    const card = el('div', { class: 'card scroll' },
+      el('h3', { style: 'margin-top:0' }, `Turns by cost (${s.turns.length})`), tbl,
+      el('div', { class: 'note' }, '*cost includes subagents spawned during the turn'));
+    if (sorted.length > 10) {
+      let expanded = false;
+      const btn = el('button', { class: 'more', onclick: () => {
+        expanded = !expanded;
+        tbody.replaceChildren(...(expanded ? sorted : sorted.slice(0, 10)).map(makeRow));
+        btn.textContent = expanded ? 'show top 10' : `show all ${sorted.length}`;
+      }}, `show all ${sorted.length}`);
+      card.append(btn);
+    }
+    app.append(card);
+  }
+
+  // subagents
+  if (s.subagents.length) {
+    const tbl = el('table', {},
+      el('thead', {}, el('tr', {},
+        ['type','description / prompt','turn','calls','tools','tokens','cache-read','dur','cost'].map(h => el('th', { class: h.includes('description') ? 'txt' : '' }, h)))),
+      el('tbody', {}, s.subagents.map(sa => el('tr', {},
+        el('td', {}, sa.type),
+        el('td', { class: 'txt' }, sa.description || sa.prompt_preview || ''),
+        el('td', { class: 'num' }, sa.parent_turn ? '#' + sa.parent_turn : '—'),
+        el('td', { class: 'num' }, sa.api_calls),
+        el('td', { class: 'num' }, sa.tool_calls),
+        el('td', { class: 'num' }, fmtTok(usageTotal(sa.tokens))),
+        el('td', { class: 'num' }, usageIn(sa.tokens) ? Math.round(100 * sa.tokens.cacheRead / usageIn(sa.tokens)) + '%' : '—'),
+        el('td', { class: 'num' }, fmtDur(sa.duration_ms)),
+        el('td', { class: 'num', style: 'font-weight:600' }, fmtUsd(sa.cost_usd))))));
+    const card = el('div', { class: 'card scroll' },
+      el('h3', { style: 'margin-top:0' }, `Subagents (${s.subagents.length}) — ${fmtUsd(s.subagent_totals.cost_usd)}, ${s.subagent_totals.pct_of_cost}% of session cost`),
+      tbl);
+    // context curves of the top-3 costly subagents
+    const withSeries = s.subagents.filter(sa => sa.series && sa.series.length > 1);
+    if (withSeries.length) {
+      card.append(el('h3', {}, 'Context curves — top subagents by cost'));
+      card.append(lineChart(withSeries.map((sa, j) => ({
+        name: `${sa.type}${sa.description ? ': ' + sa.description : ''}`,
+        color: colorOf(j),
+        points: sa.series.map(p => ({ x: (p.t - sa.series[0].t) / 60000, y: p.ctx })),
+        events: [],
+      })), { yFmt: fmtTok, height: 180 }));
+      card.append(el('div', { class: 'legend' },
+        withSeries.map((sa, j) => el('div', { class: 'it' },
+          el('i', { class: 'key', style: `background:${colorOf(j)}` }),
+          `${sa.type}${sa.description ? ': ' + sa.description : ''}`))));
+    }
+    app.append(card);
+  }
+
+  // compactions
+  if (s.compacts.length) {
+    app.append(el('div', { class: 'card scroll' },
+      el('h3', { style: 'margin-top:0' }, `Compactions (${s.compacts.length})`),
+      el('table', {},
+        el('thead', {}, el('tr', {}, ['time','trigger','before','after','dropped','took'].map(h => el('th', {}, h)))),
+        el('tbody', {}, s.compacts.map(c => el('tr', {},
+          el('td', {}, fmtClock(c.ts)),
+          el('td', {}, c.trigger),
+          el('td', { class: 'num' }, fmtTok(c.preTokens)),
+          el('td', { class: 'num' }, fmtTok(c.postTokens)),
+          el('td', { class: 'num' }, fmtTok(c.preTokens - c.postTokens)),
+          el('td', { class: 'num' }, fmtDur(c.durationMs))))))));
+  }
+});
+
+// pricing footnote
+{
+  const rows = Object.entries(DATA.pricing_per_mtok);
+  app.append(el('details', { class: 'pricing' },
+    el('summary', {}, 'Pricing used (USD per MTok)'),
+    el('table', {},
+      el('thead', {}, el('tr', {}, ['model','input','cache w 5m','cache w 1h','cache read','output'].map(h => el('th', {}, h)))),
+      el('tbody', {}, rows.map(([m, p]) => el('tr', {},
+        el('td', { class: 'mono' }, m),
+        el('td', { class: 'num' }, '$' + p.in),
+        el('td', { class: 'num' }, '$' + (p.in * 1.25).toFixed(2)),
+        el('td', { class: 'num' }, '$' + (p.in * 2).toFixed(2)),
+        el('td', { class: 'num' }, '$' + (p.in * 0.1).toFixed(2)),
+        el('td', { class: 'num' }, '$' + p.out)))))));
+}
+
+function tile(label, value, detail) {
+  return el('div', { class: 'tile' },
+    el('div', { class: 'l' }, label),
+    el('div', { class: 'v' }, value),
+    detail ? el('div', { class: 'd' }, detail) : null);
+}
+</script>
+</body>
+</html>
