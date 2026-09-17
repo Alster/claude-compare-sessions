@@ -103,10 +103,23 @@ details.pricing table { font-size: 12px; max-width: 560px; }
   border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer;
 }
 .marker-legend { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.take { display: flex; align-items: baseline; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--grid); }
+.take:last-child { border-bottom: none; }
+.take .fig { min-width: 64px; text-align: right; font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+.take .txt { color: var(--ink-2); }
+.take .txt b { color: var(--ink); }
+.take.bad .fig { color: var(--warn); }
+.take.good .fig { color: var(--s4); }
+.take.info .fig { color: var(--s1); }
+.callout { border-left: 3px solid var(--s1); padding: 6px 12px; margin: 8px 0; color: var(--ink-2); font-size: 13px; }
 </style>
 </head>
 <body>
 <script id="report-data" type="application/json">{}</script>
+<div class="card" id="findings" hidden>
+  <h3 style="margin-top:0">Висновки</h3>
+  <!-- AGENT: findings -->
+</div>
 <div class="wrap" id="app"></div>
 <script>
 'use strict';
@@ -348,6 +361,8 @@ if (S.length > 1) {
       el('td', strong ? { style: 'font-weight:600' } : {}, label),
       S.map(s => el('td', { class: 'num', style: strong ? 'font-weight:600' : '' }, String(fn(s))))))));
   app.append(el('div', { class: 'card scroll' }, tbl));
+  // findings block (filled by the /compare-sessions skill; hidden otherwise)
+  app.append(document.getElementById('findings'));
   const unknown = S.filter(s => s.totals.unknown_model_tokens > 0);
   if (unknown.length) {
     app.append(el('div', { class: 'note warntxt' },
