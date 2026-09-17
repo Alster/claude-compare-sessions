@@ -36,6 +36,13 @@ node compare.mjs "unitId=19ak"
 node compare.mjs my-session --json > data.json
 ```
 
+## Скіл `/compare-sessions`
+
+`skills/compare-sessions/SKILL.md` (симлінк у `~/.claude/skills/compare-sessions`) —
+обгортка для Claude Code: `/compare-sessions name1 name2` запускає аналізатор,
+пише наративні висновки (що краще/гірше і чому) у блок «Висновки» HTML-звіту
+і дає короткий вердикт у чаті.
+
 ## Що у звіті
 
 - **Порівняльна таблиця**: вартість у $ (головна метрика, з розкладом main/сабагенти),
