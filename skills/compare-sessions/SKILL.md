@@ -6,14 +6,16 @@ description: Порівняти використання токенів/варт
 # Compare sessions
 
 Порівняльний аналіз сесій Claude Code за токенами/вартістю з наративними висновками.
-Аналізатор: `node /home/anikkhoma/repos/cf/claude-usage/compare.mjs` (сесії шукаються
+Аналізатор: `node ~/.claude/skills/compare-sessions/compare.mjs` (сесії шукаються
 за custom title — підрядком імені — або UUID-префіксом, по всіх проєктах `~/.claude/projects`).
+Скіл самодостатній: `compare.mjs` і `report-template.html` постачаються разом із ним,
+тому він не залежить від шляху або імені домашньої теки конкретного користувача.
 
 ## Кроки
 
 1. **Дані.** Запусти аналізатор у JSON-режимі (одна або більше сесій):
    ```sh
-   node /home/anikkhoma/repos/cf/claude-usage/compare.mjs <name1> [<name2> ...] --json > /tmp/session-compare.json
+   node ~/.claude/skills/compare-sessions/compare.mjs <name1> [<name2> ...] --json > /tmp/session-compare.json
    ```
    Якщо ім'я неоднозначне — скрипт виведе список збігів у stderr; покажи його користувачу
    і попроси уточнити (або сам обери, якщо з контексту розмови очевидно, яку сесію мали на увазі,
@@ -36,7 +38,7 @@ description: Порівняти використання токенів/варт
 
 3. **HTML-звіт.** Згенеруй у поточну директорію:
    ```sh
-   node /home/anikkhoma/repos/cf/claude-usage/compare.mjs <ті самі імена> -o ./session-compare-$(date +%Y%m%d-%H%M).html
+   node ~/.claude/skills/compare-sessions/compare.mjs <ті самі імена> -o ./session-compare-$(date +%Y%m%d-%H%M).html
    ```
 
 4. **Впиши висновки у звіт** (Edit, не Write). У файлі є блок:

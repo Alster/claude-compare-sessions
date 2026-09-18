@@ -1,4 +1,4 @@
-# claude-usage
+# claude-compare-sessions
 
 Глибокий аналіз використання токенів/вартості конкретних сесій Claude Code —
 разом із їхніми сабагентами — та порівняння кількох сесій між собою.
@@ -8,8 +8,11 @@
 
 ## Використання
 
+Аналізатор живе в `skills/compare-sessions/compare.mjs` (єдине джерело правди —
+скіл самодостатній і не залежить від кореня репозиторію):
+
 ```sh
-node compare.mjs <ім'я-сесії> [<ім'я-сесії> ...] [опції]
+node skills/compare-sessions/compare.mjs <ім'я-сесії> [<ім'я-сесії> ...] [опції]
 ```
 
 Сесія вказується **іменем** (custom title, який ви даєте сесії в Claude Code) —
@@ -27,18 +30,37 @@ node compare.mjs <ім'я-сесії> [<ім'я-сесії> ...] [опції]
 
 ```sh
 # порівняти дві сесії
-node compare.mjs 39-zrp-chbp-ground 41-ombr-16-ak-ground
+node skills/compare-sessions/compare.mjs 39-zrp-chbp-ground 41-ombr-16-ak-ground
 
 # глибокий розбір однієї сесії
-node compare.mjs "unitId=19ak"
+node skills/compare-sessions/compare.mjs "unitId=19ak"
 
 # JSON для своїх скриптів
-node compare.mjs my-session --json > data.json
+node skills/compare-sessions/compare.mjs my-session --json > data.json
 ```
 
 ## Скіл `/compare-sessions`
 
-`skills/compare-sessions/SKILL.md` (симлінк у `~/.claude/skills/compare-sessions`) —
+`skills/compare-sessions/` — самодостатній пакет скіла для Claude Code:
+він містить `SKILL.md`, аналізатор і HTML-шаблон та не має персональних шляхів.
+
+### Встановлення скіла
+
+Після клонування репозиторію виконайте:
+
+```sh
+mkdir -p ~/.claude/skills
+cp -R skills/compare-sessions/. ~/.claude/skills/compare-sessions/
+```
+
+Після цього перезапустіть Claude Code або відкрийте нову сесію. Для оновлення
+скіла повторіть команду після `git pull`. Альтернатива для розробки — симлінк:
+
+```sh
+ln -sfn "$(pwd)/skills/compare-sessions" ~/.claude/skills/compare-sessions
+```
+
+`~/.claude/skills/compare-sessions/SKILL.md` —
 обгортка для Claude Code: `/compare-sessions name1 name2` запускає аналізатор,
 пише наративні висновки (що краще/гірше і чому) у блок «Висновки» HTML-звіту
 і дає короткий вердикт у чаті.
@@ -63,7 +85,7 @@ node compare.mjs my-session --json > data.json
 
 ## Вартість
 
-Ціни захардкоджені в `PRICING` у `compare.mjs` (USD за MTok) і показані у звіті
+Ціни захардкоджені в `PRICING` у `skills/compare-sessions/compare.mjs` (USD за MTok) і показані у звіті
 (розділ "Pricing used"). Множники кешу: запис 5m ×1.25, запис 1h ×2 (розбивка
 береться з `usage.cache_creation.ephemeral_1h/5m_input_tokens`), читання ×0.1
 від ціни input. Токени моделей без відомої ціни рахуються, але в $ не входять —
