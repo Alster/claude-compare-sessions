@@ -36,17 +36,18 @@ import { fileURLToPath } from 'url'
 
 // ---------------------------------------------------------------------------
 // Pricing (USD per MTok). Cache write 5m = 1.25x input, 1h = 2x input,
-// cache read = 0.1x input. Source: Anthropic pricing, cached 2026-09-17.
+// cache read = 0.1x input. Source: platform.claude.com pricing, checked 2026-09-18.
 // ---------------------------------------------------------------------------
 const PRICING = {
   'claude-fable-5': { in: 10, out: 50 },
   'claude-mythos-5': { in: 10, out: 50 },
+  'claude-opus-5': { in: 5, out: 25 },
   'claude-opus-4-8': { in: 5, out: 25 },
   'claude-opus-4-7': { in: 5, out: 25 },
   'claude-opus-4-6': { in: 5, out: 25 },
   'claude-opus-4-5': { in: 5, out: 25 },
   'claude-opus-4-1': { in: 15, out: 75 },
-  'claude-sonnet-5': { in: 3, out: 15 },
+  'claude-sonnet-5': { in: 2, out: 10 }, // intro $2/$10 became standard; the 3/15 hike was cancelled
   'claude-sonnet-4-6': { in: 3, out: 15 },
   'claude-sonnet-4-5': { in: 3, out: 15 },
   'claude-haiku-4-5': { in: 1, out: 5 },
