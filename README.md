@@ -1,5 +1,7 @@
 # claude-compare-sessions
 
+![Vibe Coded](https://img.shields.io/badge/vibe-coded-purple?style=for-the-badge&labelColor=yellow)
+
 Глибокий аналіз використання токенів/вартості конкретних сесій Claude Code —
 разом із їхніми сабагентами — та порівняння кількох сесій між собою.
 
